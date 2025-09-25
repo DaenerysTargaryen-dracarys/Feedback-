@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dynamic Food Feedback Generator 🍗</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { background-color: #f9fafb; }
+  .card { transition: transform 0.2s; }
+  .card:hover { transform: translateY(-5px); }
+</style>
+</head>
+<body class="p-6 font-sans">
+
+<div class="max-w-3xl mx-auto">
+  <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">Food Feedback Generator 🍗</h1>
+
+  <!-- Dropdown to select food for feedback -->
+  <div class="mb-4 flex gap-2">
+    <select id="foodSelect" class="flex-1 p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 text-gray-800">
+      <option value="" disabled selected>Select a food item</option>
+    </select>
+    <input id="newFood" type="text" placeholder="New item" class="p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-400 text-gray-800">
+    <button onclick="addFoodItem()" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition">Add</button>
+  </div>
+
+  <!-- Dropdown to edit/remove -->
+  <div class="mb-4 flex gap-2">
+    <select id="manageSelect" class="flex-1 p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-400 text-gray-800">
+      <option value="" disabled selected>Select item to Edit/Remove</option>
+    </select>
+    <select id="actionSelect" class="p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400 text-gray-800">
+      <option value="" disabled selected>Action</option>
+      <option value="edit">Edit</option>
+      <option value="remove">Remove</option>
+    </select>
+    <button onclick="manageFoodItem()" class="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition">Apply</button>
+  </div>
+
+  <!-- Number of reviews -->
+  <div class="mb-4">
+    <input id="numReviews" type="number" min="1" max="1000" value="5"
+      class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-400 text-gray-800"
+      placeholder="Number of reviews to generate">
+  </div>
+
+  <!-- Buttons -->
+  <div class="flex justify-center gap-4 mb-6">
+    <button onclick="generateFeedback()" class="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition">Generate</button>
+    <button onclick="copyAllReviews()" class="bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600 transition">Copy All</button>
+  </div>
+
+  <!-- Output -->
+  <div id="output" class="space-y-4 max-h-[60vh] overflow-y-auto border p-2 bg-gray-50 rounded-lg"></div>
+</div>
+
+<script>
+let foodItems = [
+  "Chicken", "Popcorn chicken", "Hot wings", "Burger", "Boneless chicken",
+  "Spicy burger", "Golden edition burger", "Golden edition fries", 
+  "Smokey chicken", "Chicken bucket", "Wednesday bucket", "Thigh piece", 
+  "Leg piece", "Breast piece"
+];
+
+// Initialize dropdowns
+function initDropdowns() {
+  const select = document.getElementById('foodSelect');
+  const manageSelect = document.getElementById('manageSelect');
+
+  select.innerHTML = '<option value="" disabled selected>Select a food item</option>';
+  manageSelect.innerHTML = '<option value="" disabled selected>Select item to Edit/Remove</option>';
+
+  foodItems.forEach(item => {
+    const option1 = document.createElement('option');
+    option1.value = item; option1.textContent = item;
+    select.appendChild(option1);
+
+    const option2 = document.createElement('option');
+    option2.value = item; option2.textContent = item;
+    manageSelect.appendChild(option2);
+  });
+}
+
+// Add new item
+function addFoodItem() {
+  const input = document.getElementById('newFood');
+  const value = input.value.trim();
+  if (!value) return alert("Please type an item to add.");
+  if (foodItems.includes(value)) return alert("Item already exists.");
+  foodItems.push(value);
+  input.value = '';
+  initDropdowns();
+}
+
+// Edit or Remove item
+function manageFoodItem() {
+  const selectedItem = document.getElementById('manageSelect').value;
+  const action = document.getElementById('actionSelect').value;
+  if (!selectedItem || !action) return alert("Select item and action.");
+
+  if (action === "edit") {
+    const newName = prompt("Edit item:", selectedItem);
+    if (!newName) return;
+    if (foodItems.includes(newName.trim())) return alert("Item already exists.");
+    const index = foodItems.indexOf(selectedItem);
+    foodItems[index] = newName.trim();
+  } else if (action === "remove") {
+    if (!confirm(`Remove "${selectedItem}"?`)) return;
+    foodItems = foodItems.filter(i => i !== selectedItem);
+  }
+
+  initDropdowns();
+}
+
+// Dynamic feedback generator
+function randomChoice(array) { return array[Math.floor(Math.random() * array.length)]; }
+
+function createFeedback(item) {
+  const adjectives = ["delicious", "amazing", "tasty", "scrumptious", "mouthwatering", "flavorful", "crispy", "juicy", "perfect", "fresh"];
+  const verbs = ["loved", "enjoyed", "devoured", "savored", "relished", "adored"];
+  const endings = ["😋🍗", "🤩🔥", "😍🍴", "💯👌", "🤤✨", "👏🍗", "👍🥳", "🍽️😎", "🍗💖", "🔥😋"];
+  const adjective = randomChoice(adjectives);
+  const verb = randomChoice(verbs);
+  const ending = randomChoice(endings);
+  const sentenceStructures = [
+    `I ${verb} the ${item}, it was absolutely ${adjective}! ${ending}`,
+    `The ${item} is so ${adjective}, I ${verb} every bite! ${ending}`,
+    `Can't stop ${verb} the ${item}, truly ${adjective}! ${ending}`,
+    `Wow! The ${item} tastes ${adjective}, I really ${verb} it! ${ending}`,
+    `Every bite of the ${item} is ${adjective}, totally ${verb} it! ${ending}`
+  ];
+  return randomChoice(sentenceStructures);
+}
+
+function generateFeedback() {
+  const item = document.getElementById('foodSelect').value;
+  const outputDiv = document.getElementById('output');
+  const count = parseInt(document.getElementById('numReviews').value) || 1;
+
+  if (!item) { alert("Please select a food item!"); return; }
+
+  outputDiv.innerHTML = '';
+  for (let i = 0; i < count; i++) {
+    const feedback = createFeedback(item);
+    const card = document.createElement('div');
+    card.className = 'card bg-white shadow-md rounded-lg p-4 flex justify-between items-start';
+    card.innerHTML = `
+      <div>
+        <p class="text-gray-800 mb-2">${feedback}</p>
+        <div class="flex items-center text-yellow-400 font-bold text-lg">★★★★★</div>
+      </div>
+      <button class="bg-blue-500 text-white px-3 py-1 rounded-lg hover:bg-blue-600 font-semibold" onclick="copyFeedback('${feedback.replace(/'/g,"\\'")}')">Copy</button>
+    `;
+    outputDiv.appendChild(card);
+  }
+}
+
+// Copy functions
+function copyFeedback(text) {
+  navigator.clipboard.writeText(text).then(() => alert('Feedback copied to clipboard! 📋'));
+}
+
+function copyAllReviews() {
+  const cards = document.querySelectorAll('#output p');
+  const allText = Array.from(cards).map(p => p.textContent).join('\n');
+  if (allText) navigator.clipboard.writeText(allText).then(() => alert('All feedback copied! 📋'));
+}
+
+// Initialize dropdowns on page load
+initDropdowns();
+</script>
+
+</body>
+</html>
